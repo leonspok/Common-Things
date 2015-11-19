@@ -1,6 +1,6 @@
 //
 //  NSString+IDString.m
-//  Fair Enough
+//  Leonspok
 //
 //  Created by Игорь Савельев on 26/04/15.
 //  Copyright (c) 2015 Leonspok. All rights reserved.
@@ -12,8 +12,7 @@
 @implementation NSString (IDString)
 
 + (instancetype)IDStringForClass:(Class)class {
-    NSTimeInterval timestamp = [[NSDate date] timeIntervalSince1970]*1000.0f;
-    NSString *string = [NSString stringWithFormat:@"%@_%f", NSStringFromClass(class), timestamp];
+    NSString *string = [NSString stringWithFormat:@"%@_%@", NSStringFromClass(class), [[NSUUID UUID] UUIDString]];
     return [string MD5String];
 }
 

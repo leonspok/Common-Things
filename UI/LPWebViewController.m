@@ -1,20 +1,20 @@
 //
-//  TTWebViewController.m
-//  tentracks-ios
+//  LPWebViewController.m
+//  Leonspok
 //
 //  Created by Игорь Савельев on 19/03/14.
 //  Copyright (c) 2014 10tracks. All rights reserved.
 //
 
-#import "SHWebViewController.h"
+#import "LPWebViewController.h"
 
-@interface SHWebViewController ()
+@interface LPWebViewController ()
 @property (weak, nonatomic) IBOutlet UIButton *reloadButton;
 @property (weak, nonatomic) IBOutlet UILabel *titleView;
 @property (weak, nonatomic) IBOutlet UIWebView *webView;
 @end
 
-@implementation SHWebViewController {
+@implementation LPWebViewController {
     BOOL (^resposeHandler)(NSURL *url);
 }
 

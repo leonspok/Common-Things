@@ -1,14 +1,14 @@
 //
-//  MSRoundRectButton.m
-//  Music Sense
+//  LPRoundRectButton.m
+//  Leonspok
 //
 //  Created by Игорь Савельев on 18/08/15.
 //  Copyright (c) 2015 10tracks. All rights reserved.
 //
 
-#import "MSRoundRectButton.h"
+#import "LPRoundRectButton.h"
 
-@implementation MSRoundRectButton {
+@implementation LPRoundRectButton {
     NSMutableDictionary *backgroundColors;
     NSMutableDictionary *borderColors;
 }

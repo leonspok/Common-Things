@@ -1,6 +1,6 @@
 //
 //  NSSet+Utilities.m
-//  Music Sense
+//  Leonspok
 //
 //  Created by Игорь Савельев on 01/10/15.
 //  Copyright © 2015 10tracks. All rights reserved.

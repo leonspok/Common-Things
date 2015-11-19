@@ -1,50 +1,48 @@
 //
-//  TTImageDownloadManager.h
-//  tentracks-ios
+//  LPImageDownloadManager.h
+//  Leonspok
 //
 //  Created by Игорь Савельев on 28/01/14.
 //  Copyright (c) 2014 10tracks. All rights reserved.
 //
 
-#import "TTDownloadManager.h"
+#import "LPDownloadManager.h"
 
 @import UIKit;
 
 typedef enum {
-    TTImageSizeOriginal,
-    TTImageSize800px,
-    TTImageSize500px,
-    TTImageSize300px,
-    TTImageSize100px,
-    TTImageSize50px
-} TTImageSize;
+    LPImageSizeOriginal,
+    LPImageSize800px,
+    LPImageSize500px,
+    LPImageSize300px,
+    LPImageSize100px,
+    LPImageSize50px
+} LPImageSize;
 
-@class TTArtist, TTAlbum;
-
-@interface TTImageDownloadManager : TTDownloadManager
+@interface LPImageDownloadManager : LPDownloadManager
 
 - (NSURL *)urlToDownloadedImageFromURL:(NSString *)url
-                                  size:(TTImageSize)size
+                                  size:(LPImageSize)size
                                rounded:(BOOL)rounded;
 
 - (UIImage *)getImageForURL:(NSString *)url
-                       size:(TTImageSize)size
+                       size:(LPImageSize)size
                     rounded:(BOOL)rounded;
 - (void)getImageForURL:(NSString *)url
-                  size:(TTImageSize)size
+                  size:(LPImageSize)size
                rounded:(BOOL)rounded
             completion:(void (^)(UIImage *image))completion;
 - (BOOL)hasImageForURL:(NSString *)url
-                  size:(TTImageSize)size
+                  size:(LPImageSize)size
                rounded:(BOOL)rounded;
 
 - (UIImage *)getImageForURL:(NSString *)url
-                       size:(TTImageSize)size;
+                       size:(LPImageSize)size;
 - (void)getImageForURL:(NSString *)url
-                  size:(TTImageSize)size
+                  size:(LPImageSize)size
             completion:(void (^)(UIImage *image))completion;
 - (BOOL)hasImageForURL:(NSString *)url
-                  size:(TTImageSize)size;
+                  size:(LPImageSize)size;
 
 - (UIImage *)getImageForURL:(NSString *)url;
 - (void)getImageForURL:(NSString *)url

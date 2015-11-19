@@ -1,21 +1,20 @@
 //
-//  TTDownloadManager.m
-//  tentracks-ios
+//  LPDownloadManager.m
+//  Leonspok
 //
 //  Created by Игорь Савельев on 28/01/14.
 //  Copyright (c) 2014 10tracks. All rights reserved.
 //
 
-#import "TTDownloadManager.h"
+#import "LPDownloadManager.h"
 
-@implementation TTDownloadManager
+@implementation LPDownloadManager
 
 + (instancetype)defaultManager {
-    static TTDownloadManager *manager = nil;
+    static LPDownloadManager *manager = nil;
     static dispatch_once_t oncePredicate;
-    //NSLog(@"%s", __PRETTY_FUNCTION__);
     dispatch_once(&oncePredicate, ^{
-        manager = [[TTDownloadManager alloc] init];
+        manager = [[LPDownloadManager alloc] init];
     });
     return manager;
 }

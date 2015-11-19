@@ -1,14 +1,14 @@
 //
-//  MSRoundedView.m
-//  Music Sense
+//  LPRoundedView.m
+//  Leonspok
 //
 //  Created by Игорь Савельев on 18/09/15.
 //  Copyright © 2015 10tracks. All rights reserved.
 //
 
-#import "MSRoundedView.h"
+#import "LPRoundedView.h"
 
-@implementation MSRoundedView
+@implementation LPRoundedView
 
 - (void)layoutSubviews {
     [super layoutSubviews];

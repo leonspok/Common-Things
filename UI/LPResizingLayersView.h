@@ -1,6 +1,6 @@
 //
-//  TTResizingLayersView.h
-//  Билайн.Волна
+//  LPResizingLayersView.h
+//  Leonspok
 //
 //  Created by Игорь Савельев on 23/06/15.
 //  Copyright (c) 2015 10tracks. All rights reserved.
@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface TTResizingLayersView : UIView
+@interface LPResizingLayersView : UIView
 
 @property (nonatomic, strong, readonly) NSArray *resizingLayers;
 
