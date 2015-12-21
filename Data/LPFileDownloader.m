@@ -1,6 +1,6 @@
 //
 //  LPFileDownloader.m
-//  Leonspok
+//  Irvue
 //
 //  Created by Игорь Савельев on 26/10/15.
 //  Copyright © 2015 Leonspok. All rights reserved.
@@ -17,6 +17,7 @@
     NSMutableDictionary *failureBlocks;
     NSMutableDictionary *progressBlocks;
     NSMutableDictionary *destinationPaths;
+    NSOperationQueue *sessionQueue;
     NSURLSession *session;
 }
 
@@ -32,11 +33,14 @@
 - (id)init {
     self = [super init];
     if (self) {
+        sessionQueue = [[NSOperationQueue alloc] init];
+        sessionQueue.name = NSStringFromClass(self.class);
+        
         successBlocks = [NSMutableDictionary dictionary];
         failureBlocks = [NSMutableDictionary dictionary];
         progressBlocks = [NSMutableDictionary dictionary];
         destinationPaths = [NSMutableDictionary dictionary];
-        session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:[NSOperationQueue mainQueue]];
+        session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:sessionQueue];
     }
     return self;
 }
@@ -61,18 +65,12 @@
     }
     
     void (^successBlock)() = ^{
-        [successBlocks removeObjectForKey:url];
-        [failureBlocks removeObjectForKey:url];
-        [progressBlocks removeObjectForKey:url];
         if (success) {
             success();
         }
     };
     
     void (^failureBlock)(NSError *error) = ^(NSError *error) {
-        [successBlocks removeObjectForKey:url];
-        [failureBlocks removeObjectForKey:url];
-        [progressBlocks removeObjectForKey:url];
         if (failure) {
             failure(error);
         }
@@ -89,32 +87,34 @@
         [progressBlocks objectForKey:url] &&
         [destinationPaths objectForKey:url]) {
         NSMutableArray *successBlocksForURL = [successBlocks objectForKey:url];
-        [successBlocksForURL addObject:[successBlock copy]];
+        [successBlocksForURL addObject:successBlock];
         
         NSMutableArray *failureBlocksForURL = [failureBlocks objectForKey:url];
-        [failureBlocksForURL addObject:[failureBlock copy]];
+        [failureBlocksForURL addObject:failureBlock];
         
         NSMutableArray *progressBlocksForURL = [progressBlocks objectForKey:url];
-        [progressBlocksForURL addObject:[progressBlock copy]];
+        [progressBlocksForURL addObject:progressBlock];
         
         NSMutableArray *destinationPathsForURL = [destinationPaths objectForKey:url];
-        [destinationPathsForURL addObject:destinationPath];
+        @synchronized(destinationPathsForURL) {
+            [destinationPathsForURL addObject:destinationPath];
+        }
     } else {
         NSMutableArray *successBlocksForURL = [NSMutableArray array];
+        [successBlocksForURL addObject:successBlock];
         [successBlocks setObject:successBlocksForURL forKey:url];
-        [successBlocksForURL addObject:[successBlock copy]];
         
         NSMutableArray *failureBlocksForURL = [NSMutableArray array];
+        [failureBlocksForURL addObject:failureBlock];
         [failureBlocks setObject:failureBlocksForURL forKey:url];
-        [failureBlocksForURL addObject:[failureBlock copy]];
         
         NSMutableArray *progressBlocksForURL = [NSMutableArray array];
+        [progressBlocksForURL addObject:progressBlock];
         [progressBlocks setObject:progressBlocksForURL forKey:url];
-        [progressBlocksForURL addObject:[progressBlock copy]];
         
         NSMutableArray *destinationPathsForURL = [NSMutableArray array];
-        [destinationPaths setObject:destinationPathsForURL forKey:url];
         [destinationPathsForURL addObject:destinationPath];
+        [destinationPaths setObject:destinationPathsForURL forKey:url];
         
         [[session downloadTaskWithURL:url] resume];
     }
@@ -133,13 +133,15 @@
         }
     } else {
         NSError *error;
-        for (NSString *path in destinationPathsForURL) {
-            if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
-                [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+        @synchronized(destinationPathsForURL) {
+            for (NSString *path in destinationPathsForURL) {
+                if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+                    [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
+                }
+                [[NSFileManager defaultManager] copyItemAtURL:location toURL:[NSURL fileURLWithPath:path] error:&error];
             }
-            [[NSFileManager defaultManager] copyItemAtURL:location toURL:[NSURL fileURLWithPath:path] error:&error];
+            [[NSFileManager defaultManager] removeItemAtURL:location error:nil];
         }
-        [[NSFileManager defaultManager] removeItemAtURL:location error:nil];
         if (error) {
             NSArray *blocks = [failureBlocks objectForKey:url];
             for (void (^block)(NSError *error) in blocks) {
@@ -154,9 +156,21 @@
     }
     
     [successBlocks removeObjectForKey:url];
+    if (successBlocks.count == 0) {
+        successBlocks = [NSMutableDictionary dictionary];
+    }
     [failureBlocks removeObjectForKey:url];
+    if (failureBlocks.count == 0) {
+        failureBlocks = [NSMutableDictionary dictionary];
+    }
     [progressBlocks removeObjectForKey:url];
+    if (progressBlocks.count == 0) {
+        progressBlocks = [NSMutableDictionary dictionary];
+    }
     [destinationPaths removeObjectForKey:url];
+    if (destinationPaths.count == 0) {
+        destinationPaths = [NSMutableDictionary dictionary];
+    }
 }
 
 - (void)URLSession:(NSURLSession *)session
@@ -167,6 +181,32 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite {
     NSArray *blocks = [progressBlocks objectForKey:downloadTask.originalRequest.URL];
     for (void (^block)(double totalBytesDownloaded, double totalBytesExpectedToDownload) in blocks) {
         block((double)totalBytesWritten, (double)totalBytesExpectedToWrite);
+    }
+}
+
+- (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error {
+    NSURL *url = task.originalRequest.URL;
+    if (error) {
+        NSArray *blocks = [failureBlocks objectForKey:url];
+        for (void (^block)(NSError *error) in blocks) {
+            block(error);
+        }
+    }
+    [successBlocks removeObjectForKey:url];
+    if (successBlocks.count == 0) {
+        successBlocks = [NSMutableDictionary dictionary];
+    }
+    [failureBlocks removeObjectForKey:url];
+    if (failureBlocks.count == 0) {
+        failureBlocks = [NSMutableDictionary dictionary];
+    }
+    [progressBlocks removeObjectForKey:url];
+    if (progressBlocks.count == 0) {
+        progressBlocks = [NSMutableDictionary dictionary];
+    }
+    [destinationPaths removeObjectForKey:url];
+    if (destinationPaths.count == 0) {
+        destinationPaths = [NSMutableDictionary dictionary];
     }
 }
 
