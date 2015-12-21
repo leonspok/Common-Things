@@ -6,43 +6,49 @@
 //  Copyright (c) 2014 10tracks. All rights reserved.
 //
 
-#import "LPDownloadManager.h"
+#import <Foundation/Foundation.h>
 
 @import UIKit;
 
 typedef enum {
-    LPImageSizeOriginal,
-    LPImageSize800px,
-    LPImageSize500px,
-    LPImageSize300px,
-    LPImageSize100px,
-    LPImageSize50px
-} LPImageSize;
+    TTImageSizeOriginal,
+    TTImageSize800px,
+    TTImageSize500px,
+    TTImageSize300px,
+    TTImageSize100px,
+    TTImageSize50px
+} TTImageSize;
 
-@interface LPImageDownloadManager : LPDownloadManager
+@class TTArtist, TTAlbum;
+
+@interface LPImageDownloadManager : NSObject
+
+@property (nonatomic, strong) NSString *pathToCacheFolder;
+
++ (instancetype)defaultManager;
 
 - (NSURL *)urlToDownloadedImageFromURL:(NSString *)url
-                                  size:(LPImageSize)size
+                                  size:(TTImageSize)size
                                rounded:(BOOL)rounded;
 
 - (UIImage *)getImageForURL:(NSString *)url
-                       size:(LPImageSize)size
+                       size:(TTImageSize)size
                     rounded:(BOOL)rounded;
 - (void)getImageForURL:(NSString *)url
-                  size:(LPImageSize)size
+                  size:(TTImageSize)size
                rounded:(BOOL)rounded
             completion:(void (^)(UIImage *image))completion;
 - (BOOL)hasImageForURL:(NSString *)url
-                  size:(LPImageSize)size
+                  size:(TTImageSize)size
                rounded:(BOOL)rounded;
 
 - (UIImage *)getImageForURL:(NSString *)url
-                       size:(LPImageSize)size;
+                       size:(TTImageSize)size;
 - (void)getImageForURL:(NSString *)url
-                  size:(LPImageSize)size
+                  size:(TTImageSize)size
             completion:(void (^)(UIImage *image))completion;
 - (BOOL)hasImageForURL:(NSString *)url
-                  size:(LPImageSize)size;
+                  size:(TTImageSize)size;
 
 - (UIImage *)getImageForURL:(NSString *)url;
 - (void)getImageForURL:(NSString *)url
