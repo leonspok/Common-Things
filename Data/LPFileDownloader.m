@@ -9,14 +9,13 @@
 #import "LPFileDownloader.h"
 
 @interface LPFileDownloader()<NSURLSessionDownloadDelegate>
-
+@property(nonatomic, strong) NSMutableDictionary *successBlocks;
+@property(nonatomic, strong) NSMutableDictionary *failureBlocks;
+@property(nonatomic, strong) NSMutableDictionary *progressBlocks;
+@property(nonatomic, strong) NSMutableDictionary *destinationPaths;
 @end
 
 @implementation LPFileDownloader {
-    NSMutableDictionary *successBlocks;
-    NSMutableDictionary *failureBlocks;
-    NSMutableDictionary *progressBlocks;
-    NSMutableDictionary *destinationPaths;
     NSOperationQueue *sessionQueue;
     NSURLSession *session;
 }
@@ -36,10 +35,10 @@
         sessionQueue = [[NSOperationQueue alloc] init];
         sessionQueue.name = NSStringFromClass(self.class);
         
-        successBlocks = [NSMutableDictionary dictionary];
-        failureBlocks = [NSMutableDictionary dictionary];
-        progressBlocks = [NSMutableDictionary dictionary];
-        destinationPaths = [NSMutableDictionary dictionary];
+        self.successBlocks = [NSMutableDictionary dictionary];
+        self.failureBlocks = [NSMutableDictionary dictionary];
+        self.progressBlocks = [NSMutableDictionary dictionary];
+        self.destinationPaths = [NSMutableDictionary dictionary];
         session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration] delegate:self delegateQueue:sessionQueue];
     }
     return self;
@@ -82,40 +81,46 @@
         }
     };
     
-    if ([successBlocks objectForKey:url] &&
-        [failureBlocks objectForKey:url] &&
-        [progressBlocks objectForKey:url] &&
-        [destinationPaths objectForKey:url]) {
-        NSMutableArray *successBlocksForURL = [successBlocks objectForKey:url];
-        [successBlocksForURL addObject:successBlock];
-        
-        NSMutableArray *failureBlocksForURL = [failureBlocks objectForKey:url];
-        [failureBlocksForURL addObject:failureBlock];
-        
-        NSMutableArray *progressBlocksForURL = [progressBlocks objectForKey:url];
-        [progressBlocksForURL addObject:progressBlock];
-        
-        NSMutableArray *destinationPathsForURL = [destinationPaths objectForKey:url];
-        @synchronized(destinationPathsForURL) {
+    BOOL shouldDownload = NO;
+    
+    @synchronized(self) {
+        if ([self.successBlocks objectForKey:url] &&
+            [self.failureBlocks objectForKey:url] &&
+            [self.progressBlocks objectForKey:url] &&
+            [self.destinationPaths objectForKey:url]) {
+            NSMutableArray *successBlocksForURL = [self.successBlocks objectForKey:url];
+            [successBlocksForURL addObject:successBlock];
+            
+            NSMutableArray *failureBlocksForURL = [self.failureBlocks objectForKey:url];
+            [failureBlocksForURL addObject:failureBlock];
+            
+            NSMutableArray *progressBlocksForURL = [self.progressBlocks objectForKey:url];
+            [progressBlocksForURL addObject:progressBlock];
+            
+            NSMutableArray *destinationPathsForURL = [self.destinationPaths objectForKey:url];
             [destinationPathsForURL addObject:destinationPath];
+        } else {
+            NSMutableArray *successBlocksForURL = [NSMutableArray array];
+            [successBlocksForURL addObject:successBlock];
+            [self.successBlocks setObject:successBlocksForURL forKey:url];
+            
+            NSMutableArray *failureBlocksForURL = [NSMutableArray array];
+            [failureBlocksForURL addObject:failureBlock];
+            [self.failureBlocks setObject:failureBlocksForURL forKey:url];
+            
+            NSMutableArray *progressBlocksForURL = [NSMutableArray array];
+            [progressBlocksForURL addObject:progressBlock];
+            [self.progressBlocks setObject:progressBlocksForURL forKey:url];
+            
+            NSMutableArray *destinationPathsForURL = [NSMutableArray array];
+            [destinationPathsForURL addObject:destinationPath];
+            [self.destinationPaths setObject:destinationPathsForURL forKey:url];
+            
+            shouldDownload = YES;
         }
-    } else {
-        NSMutableArray *successBlocksForURL = [NSMutableArray array];
-        [successBlocksForURL addObject:successBlock];
-        [successBlocks setObject:successBlocksForURL forKey:url];
-        
-        NSMutableArray *failureBlocksForURL = [NSMutableArray array];
-        [failureBlocksForURL addObject:failureBlock];
-        [failureBlocks setObject:failureBlocksForURL forKey:url];
-        
-        NSMutableArray *progressBlocksForURL = [NSMutableArray array];
-        [progressBlocksForURL addObject:progressBlock];
-        [progressBlocks setObject:progressBlocksForURL forKey:url];
-        
-        NSMutableArray *destinationPathsForURL = [NSMutableArray array];
-        [destinationPathsForURL addObject:destinationPath];
-        [destinationPaths setObject:destinationPathsForURL forKey:url];
-        
+    }
+    
+    if (shouldDownload) {
         [[session downloadTaskWithURL:url] resume];
     }
 }
@@ -125,51 +130,43 @@
 - (void)URLSession:(NSURLSession *)session downloadTask:(NSURLSessionDownloadTask *)downloadTask didFinishDownloadingToURL:(NSURL *)location {
     NSError *error = downloadTask.error;
     NSURL *url = downloadTask.originalRequest.URL;
-    NSArray *destinationPathsForURL = [destinationPaths objectForKey:url];
+    
+    NSArray *destinationPathsForURL;
+    NSArray *failureBlocks;
+    NSArray *successBlocks;
+    @synchronized(self) {
+        destinationPathsForURL = [NSArray arrayWithArray:[self.destinationPaths objectForKey:url]];
+        failureBlocks = [NSArray arrayWithArray:[self.failureBlocks objectForKey:url]];
+        successBlocks = [NSArray arrayWithArray:[self.successBlocks objectForKey:url]];
+        
+        [self.successBlocks removeObjectForKey:url];
+        [self.failureBlocks removeObjectForKey:url];
+        [self.progressBlocks removeObjectForKey:url];
+        [self.destinationPaths removeObjectForKey:url];
+    }
+    
     if (error) {
-        NSArray *blocks = [failureBlocks objectForKey:url];
-        for (void (^block)(NSError *error) in blocks) {
+        for (void (^block)(NSError *error) in failureBlocks) {
             block(error);
         }
     } else {
         NSError *error;
-        @synchronized(destinationPathsForURL) {
-            for (NSString *path in destinationPathsForURL) {
-                if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
-                    [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
-                }
-                [[NSFileManager defaultManager] copyItemAtURL:location toURL:[NSURL fileURLWithPath:path] error:&error];
+        for (NSString *path in destinationPathsForURL) {
+            if ([[NSFileManager defaultManager] fileExistsAtPath:path]) {
+                [[NSFileManager defaultManager] removeItemAtPath:path error:nil];
             }
-            [[NSFileManager defaultManager] removeItemAtURL:location error:nil];
+            [[NSFileManager defaultManager] copyItemAtURL:location toURL:[NSURL fileURLWithPath:path] error:&error];
         }
+        [[NSFileManager defaultManager] removeItemAtURL:location error:nil];
         if (error) {
-            NSArray *blocks = [failureBlocks objectForKey:url];
-            for (void (^block)(NSError *error) in blocks) {
+            for (void (^block)(NSError *error) in failureBlocks) {
                 block(error);
             }
         } else {
-            NSArray *blocks = [successBlocks objectForKey:url];
-            for (void (^block)() in blocks) {
+            for (void (^block)() in successBlocks) {
                 block();
             }
         }
-    }
-    
-    [successBlocks removeObjectForKey:url];
-    if (successBlocks.count == 0) {
-        successBlocks = [NSMutableDictionary dictionary];
-    }
-    [failureBlocks removeObjectForKey:url];
-    if (failureBlocks.count == 0) {
-        failureBlocks = [NSMutableDictionary dictionary];
-    }
-    [progressBlocks removeObjectForKey:url];
-    if (progressBlocks.count == 0) {
-        progressBlocks = [NSMutableDictionary dictionary];
-    }
-    [destinationPaths removeObjectForKey:url];
-    if (destinationPaths.count == 0) {
-        destinationPaths = [NSMutableDictionary dictionary];
     }
 }
 
@@ -178,7 +175,11 @@
       didWriteData:(int64_t)bytesWritten
  totalBytesWritten:(int64_t)totalBytesWritten
 totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite {
-    NSArray *blocks = [progressBlocks objectForKey:downloadTask.originalRequest.URL];
+    NSArray *blocks;
+    @synchronized(self) {
+        blocks = [NSArray arrayWithArray:[self.progressBlocks objectForKey:downloadTask.originalRequest.URL]];
+    }
+    
     for (void (^block)(double totalBytesDownloaded, double totalBytesExpectedToDownload) in blocks) {
         block((double)totalBytesWritten, (double)totalBytesExpectedToWrite);
     }
@@ -186,27 +187,20 @@ totalBytesExpectedToWrite:(int64_t)totalBytesExpectedToWrite {
 
 - (void)URLSession:(NSURLSession *)session task:(NSURLSessionTask *)task didCompleteWithError:(NSError *)error {
     NSURL *url = task.originalRequest.URL;
+    
+    NSArray *failureBlocks;
+    @synchronized(self) {
+        failureBlocks = [NSArray arrayWithArray:[self.failureBlocks objectForKey:url]];
+        [self.successBlocks removeObjectForKey:url];
+        [self.failureBlocks removeObjectForKey:url];
+        [self.progressBlocks removeObjectForKey:url];
+        [self.destinationPaths removeObjectForKey:url];
+    }
+    
     if (error) {
-        NSArray *blocks = [failureBlocks objectForKey:url];
-        for (void (^block)(NSError *error) in blocks) {
+        for (void (^block)(NSError *error) in failureBlocks) {
             block(error);
         }
-    }
-    [successBlocks removeObjectForKey:url];
-    if (successBlocks.count == 0) {
-        successBlocks = [NSMutableDictionary dictionary];
-    }
-    [failureBlocks removeObjectForKey:url];
-    if (failureBlocks.count == 0) {
-        failureBlocks = [NSMutableDictionary dictionary];
-    }
-    [progressBlocks removeObjectForKey:url];
-    if (progressBlocks.count == 0) {
-        progressBlocks = [NSMutableDictionary dictionary];
-    }
-    [destinationPaths removeObjectForKey:url];
-    if (destinationPaths.count == 0) {
-        destinationPaths = [NSMutableDictionary dictionary];
     }
 }
 
