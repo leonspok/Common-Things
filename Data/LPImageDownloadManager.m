@@ -354,3 +354,5 @@
     return [self hasImageForURL:url size:TTImageSizeOriginal];
 }
 
+@end
+
