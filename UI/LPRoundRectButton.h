@@ -8,10 +8,11 @@
 
 #import <UIKit/UIKit.h>
 
+IB_DESIGNABLE
 @interface LPRoundRectButton : UIButton
 
-@property (nonatomic) CGFloat cornerRadius;
-@property (nonatomic) CGFloat borderWidth;
+@property (nonatomic) IBInspectable CGFloat cornerRadius;
+@property (nonatomic) IBInspectable CGFloat borderWidth;
 
 - (void)setBackgroundColor:(UIColor *)backgroundColor
                   forState:(UIControlState)state;
