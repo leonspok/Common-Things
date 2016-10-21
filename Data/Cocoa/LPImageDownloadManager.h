@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@import UIKit;
+@import AppKit;
 
 typedef enum {
     TTImageSizeOriginal,
@@ -18,8 +18,6 @@ typedef enum {
     TTImageSize100px,
     TTImageSize50px
 } TTImageSize;
-
-@class TTArtist, TTAlbum;
 
 @interface LPImageDownloadManager : NSObject
 
@@ -31,28 +29,28 @@ typedef enum {
                                   size:(TTImageSize)size
                                rounded:(BOOL)rounded;
 
-- (UIImage *)getImageForURL:(NSString *)url
+- (NSImage *)getImageForURL:(NSString *)url
                        size:(TTImageSize)size
                     rounded:(BOOL)rounded;
 - (void)getImageForURL:(NSString *)url
                   size:(TTImageSize)size
                rounded:(BOOL)rounded
-            completion:(void (^)(UIImage *image))completion;
+            completion:(void (^)(NSImage *image))completion;
 - (BOOL)hasImageForURL:(NSString *)url
                   size:(TTImageSize)size
                rounded:(BOOL)rounded;
 
-- (UIImage *)getImageForURL:(NSString *)url
+- (NSImage *)getImageForURL:(NSString *)url
                        size:(TTImageSize)size;
 - (void)getImageForURL:(NSString *)url
                   size:(TTImageSize)size
-            completion:(void (^)(UIImage *image))completion;
+            completion:(void (^)(NSImage *image))completion;
 - (BOOL)hasImageForURL:(NSString *)url
                   size:(TTImageSize)size;
 
-- (UIImage *)getImageForURL:(NSString *)url;
+- (NSImage *)getImageForURL:(NSString *)url;
 - (void)getImageForURL:(NSString *)url
-            completion:(void (^)(UIImage *image))completion;
+            completion:(void (^)(NSImage *image))completion;
 - (BOOL)hasImageForURL:(NSString *)url;
 
 @end
