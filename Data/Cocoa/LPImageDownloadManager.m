@@ -10,6 +10,7 @@
 #import "NSString+MD5.h"
 #import "LPFileDownloader.h"
 #import "NSBezierPath+CGPath.h"
+#import "NSImage+Effects.h"
 
 @implementation LPImageDownloadManager {
     NSCache *imageCache;
@@ -29,6 +30,7 @@
     self = [super init];
     if(self) {
         renderOperationQueue = [[NSOperationQueue alloc] init];
+		renderOperationQueue.qualityOfService = NSQualityOfServiceUserInitiated;
         renderOperationQueue.name = @"render images operation queue";
         
         imageCache = [[NSCache alloc] init];
@@ -41,9 +43,15 @@
     return self;
 }
 
+- (void)clearCache {
+	[imageCache removeAllObjects];
+	[[NSFileManager defaultManager] removeItemAtPath:self.pathToCacheFolder error:nil];
+	[self createFolderIfNeeded];
+}
+
 - (void)createFolderIfNeeded {
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES);
-    self.pathToCacheFolder = [[paths objectAtIndex:0] stringByAppendingPathComponent:@"Cache"];
+    self.pathToCacheFolder = [[paths objectAtIndex:0] stringByAppendingPathComponent:NSStringFromClass(self.class)];
     BOOL isDirectory;
     NSError *error;
     if (![[NSFileManager defaultManager] fileExistsAtPath:self.pathToCacheFolder isDirectory:&isDirectory]) {
@@ -118,51 +126,7 @@
 }
 
 - (NSImage *)renderImage:(NSImage *)image toSize:(NSSize)size rounded:(BOOL)rounded {
-	CGFloat width = image.size.width;
-	CGFloat height = image.size.height;
-	
-	CGRect frame = CGRectMake(0, 0, size.width, size.height);
-	
-	CGRect drawRect;
-	CGFloat vertScaleRatio = frame.size.height/height;
-	CGFloat horScaleRatio = frame.size.width/width;
-	if (vertScaleRatio >= horScaleRatio) {
-		CGFloat newWidth = width*vertScaleRatio;
-		CGFloat offset = (newWidth - frame.size.width)/2;
-		drawRect = CGRectMake(-offset, 0.0, newWidth, frame.size.height);
-	} else {
-		CGFloat newHeight = height*horScaleRatio;
-		CGFloat offset = (newHeight - frame.size.height)/2;
-		drawRect = CGRectMake(0.0, -offset, frame.size.width, newHeight);
-	}
-	
-	size_t w = (size_t)ceilf(size.width);
-	size_t h = (size_t)ceilf(size.height);
-	void *data = malloc(w*h*4);
-	
-	CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB();
-	CGImageAlphaInfo alphaInfo = kCGImageAlphaPremultipliedLast;
-	CGContextRef context = CGBitmapContextCreate(data, w, h, 8, w*4, space, alphaInfo);
-	CGContextClearRect(context, frame);
-	if (rounded) {
-		CGContextBeginPath(context);
-		CGContextAddPath(context, [[NSBezierPath bezierPathWithRoundedRect:NSMakeRect(0, 0, w, h) xRadius:w/2.0f yRadius:h/2.0f] CGPath]);
-		CGContextClosePath(context);
-		CGContextClip(context);
-	}
-	NSRect rect = NSMakeRect(0, 0, width, height);
-	CGImageRef drawingImageRef = [image CGImageForProposedRect:&rect context:nil hints:nil];
-	CGContextDrawImage(context, drawRect, drawingImageRef);
-	CGImageRelease(drawingImageRef);
-	CGImageRef imageRef = CGBitmapContextCreateImage(context);
-	CGContextRelease(context);
-	CGColorSpaceRelease(space);
-	free(data);
-	
-	NSImage *returnImage = [[NSImage alloc] initWithCGImage:imageRef size:size];
-	CGImageRelease(imageRef);
-	
-	return returnImage;
+	return [image resizeWithAspectFillToSize:size rounded:rounded];
 }
 
 - (NSImage *)getImageForURL:(NSString *)url
@@ -286,10 +250,7 @@
                         if (fileName) {
                             [imageCache setObject:renderedImage forKey:fileName cost:cost];
                         }
-						[renderedImage lockFocus] ;
-						NSBitmapImageRep *bitmapRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0.0, 0.0, [renderedImage size].width, [renderedImage size].height)] ;
-						[renderedImage unlockFocus] ;
-						NSData *imageData = [bitmapRep representationUsingType:NSPNGFileType properties:@{}];
+						NSData *imageData = [[renderedImage bitmapImageRepresentation] representationUsingType:NSPNGFileType properties:@{}];
                         [imageData writeToFile:imagePath atomically:YES];
                     }
                     dispatch_async(dispatch_get_main_queue(), ^{
@@ -326,10 +287,7 @@
                                 if (fileName) {
                                     [imageCache setObject:renderedImage forKey:fileName cost:cost];
                                 }
-								[renderedImage lockFocus] ;
-								NSBitmapImageRep *bitmapRep = [[NSBitmapImageRep alloc] initWithFocusedViewRect:NSMakeRect(0.0, 0.0, [renderedImage size].width, [renderedImage size].height)] ;
-								[renderedImage unlockFocus] ;
-								NSData *imageData = [bitmapRep representationUsingType:NSPNGFileType properties:@{}];
+								NSData *imageData = [[renderedImage bitmapImageRepresentation] representationUsingType:NSPNGFileType properties:@{}];
 								[imageData writeToFile:imagePath atomically:YES];
                             }
                             dispatch_async(dispatch_get_main_queue(), ^{

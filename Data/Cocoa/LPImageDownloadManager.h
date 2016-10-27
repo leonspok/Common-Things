@@ -25,6 +25,8 @@ typedef enum {
 
 + (instancetype)defaultManager;
 
+- (void)clearCache;
+
 - (NSURL *)urlToDownloadedImageFromURL:(NSString *)url
                                   size:(TTImageSize)size
                                rounded:(BOOL)rounded;
