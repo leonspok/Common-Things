@@ -3,7 +3,7 @@
 //  Leonspok
 //
 //  Created by Игорь Савельев on 20/03/14.
-//  Copyright (c) 2014 Music Sense. All rights reserved.
+//  Copyright (c) 2014 Leonspok. All rights reserved.
 //
 
 #import "NSDictionary+NSURL.h"

@@ -1,9 +1,9 @@
 //
-//  MBSongCachingOperation.m
-//  Musix
+//  LPSongCachingOperation.m
+//  Leonspok
 //
 //  Created by Игорь Савельев on 05/03/15.
-//  Copyright (c) 2015 mBox. All rights reserved.
+//  Copyright (c) 2015 Leonspok. All rights reserved.
 //
 
 #import "LPSongCachingOperation.h"

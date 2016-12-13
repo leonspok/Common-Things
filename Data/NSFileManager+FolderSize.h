@@ -1,9 +1,9 @@
 //
 //  NSFileManager+FolderSize.h
-//  Musix
+//  Leonspok
 //
 //  Created by Игорь Савельев on 09/09/16.
-//  Copyright © 2016 mBox. All rights reserved.
+//  Copyright © 2016 Leonspok. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>

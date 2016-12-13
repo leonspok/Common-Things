@@ -1,6 +1,6 @@
 //
 //  NSMutableArray+Shuffle.m
-//  Irvue
+//  Leonspok
 //
 //  Created by Игорь Савельев on 26/10/15.
 //  Copyright © 2015 Leonspok. All rights reserved.

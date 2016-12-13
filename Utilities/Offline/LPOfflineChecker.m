@@ -3,7 +3,7 @@
 //  Leonspok
 //
 //  Created by Игорь Савельев on 15/01/14.
-//  Copyright (c) 2014 10tracks. All rights reserved.
+//  Copyright (c) 2014 Leonspok. All rights reserved.
 //
 
 #import "LPOfflineChecker.h"

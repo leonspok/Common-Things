@@ -1,6 +1,6 @@
 //
 //  NSImage+Effects.h
-//  Irvue
+//  Leonspok
 //
 //  Created by Игорь Савельев on 26/10/2016.
 //  Copyright © 2016 Leonspok. All rights reserved.

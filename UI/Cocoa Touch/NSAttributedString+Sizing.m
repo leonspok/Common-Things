@@ -1,9 +1,9 @@
 //
 //  NSAttributedString+Sizing.m
-//  Impulsive Vibes
+//  Leonspok
 //
 //  Created by Игорь Савельев on 29/11/2016.
-//  Copyright © 2016 MusicSense. All rights reserved.
+//  Copyright © 2016 Leonspok. All rights reserved.
 //
 
 #import "NSAttributedString+Sizing.h"

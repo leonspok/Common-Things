@@ -1,9 +1,9 @@
 //
-//  TTCacheClient.h
-//  tentracks-ios
+//  LPCacheClient.h
+//  Leonspok
 //
 //  Created by Игорь Савельев on 03/02/14.
-//  Copyright (c) 2014 10tracks. All rights reserved.
+//  Copyright (c) 2014 Leonspok. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>

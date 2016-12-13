@@ -3,7 +3,7 @@
 //  Leonspok
 //
 //  Created by Игорь Савельев on 19/03/14.
-//  Copyright (c) 2014 10tracks. All rights reserved.
+//  Copyright (c) 2014 Leonspok. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>

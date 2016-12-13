@@ -1,6 +1,6 @@
 //
 //  LPSongCachingOperationFactory.h
-//  LPAudioPlayer
+//  Leonspok
 //
 //  Created by Игорь Савельев on 05/12/2016.
 //  Copyright © 2016 Leonspok. All rights reserved.

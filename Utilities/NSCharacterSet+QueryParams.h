@@ -1,9 +1,9 @@
 //
 //  NSCharacterSet+QueryParams.h
-//  Volume
+//  Leonspok
 //
 //  Created by Игорь Савельев on 29/08/16.
-//  Copyright © 2016 MusicSense. All rights reserved.
+//  Copyright © 2016 Leonspok. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>

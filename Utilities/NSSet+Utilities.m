@@ -3,7 +3,7 @@
 //  Leonspok
 //
 //  Created by Игорь Савельев on 01/10/15.
-//  Copyright © 2015 10tracks. All rights reserved.
+//  Copyright © 2015 Leonspok. All rights reserved.
 //
 
 #import "NSSet+Utilities.h"

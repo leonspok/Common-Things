@@ -3,7 +3,7 @@
 //  Leonspok
 //
 //  Created by Игорь Савельев on 14/04/15.
-//  Copyright (c) 2015 10tracks. All rights reserved.
+//  Copyright (c) 2015 Leonspok. All rights reserved.
 //
 
 #import "UIImageView+Transitions.h"
