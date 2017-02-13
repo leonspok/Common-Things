@@ -85,13 +85,12 @@
     NSString *tempName = [self.class pathToTempFileForSong:_song pathToCacheFolder:pathToCacheFolder owner:owner];
     
     typeof(self) __weak weakSelf = self;
-	[self getStreamingURLSuccess:^(NSURL *streamingURL) {
+	[self getStreamingRequestSuccess:^(NSURLRequest *streamingRequest) {
 		if (weakSelf.cancelled) {
 			return;
 		}
 		
-		NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:streamingURL];
-		weakSelf.streamingURL = streamingURL;
+		NSMutableURLRequest *request = [streamingRequest mutableCopy];
 		self.bytesOffset = 0;
 		if ([[NSFileManager defaultManager] fileExistsAtPath:tempName]) {
 			NSDictionary *attributes = [[NSFileManager defaultManager] attributesOfItemAtPath:tempName error:NULL];
@@ -272,9 +271,9 @@
 
 #pragma mark Override
 
-- (void)getStreamingURLSuccess:(void (^)(NSURL *))success failure:(void (^)(NSError *))failure {
+- (void)getStreamingRequestSuccess:(void (^)(NSURLRequest *))success failure:(void (^)(NSError *))failure {
 	if (success) {
-		success(self.song.streamingURL);
+		success([NSURLRequest requestWithURL:self.song.streamingURL]);
 	}
 }
 

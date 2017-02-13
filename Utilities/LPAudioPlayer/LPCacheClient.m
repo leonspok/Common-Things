@@ -22,8 +22,6 @@
 static NSString *const kMaxCacheCapacityInMBUserDefaultsKey = @"LPCacheClientMaxCacheCapacityInMB";
 
 @interface LPCacheClient()
-@property (nonatomic, readonly) double maxCacheCapacityMB;
-@property (nonatomic, readonly) BOOL keepAliveCache;
 @property (nonatomic, readwrite) double progress;
 @property (nonatomic, strong) LPSongCachingOperation *operation;
 @property (nonatomic, strong) LPSongCachingOperation *precacheOperation;
@@ -32,6 +30,8 @@ static NSString *const kMaxCacheCapacityInMBUserDefaultsKey = @"LPCacheClientMax
 @end
 
 @implementation LPCacheClient
+
+@synthesize pathToCacheFolder = _pathToCacheFolder;
 
 + (instancetype)sharedClient {
     static LPCacheClient *client = nil;
@@ -60,6 +60,15 @@ static NSString *const kMaxCacheCapacityInMBUserDefaultsKey = @"LPCacheClientMax
 		return pathToCacheFolder;
 	}
 	return _pathToCacheFolder;
+}
+
+- (void)setPathToCacheFolder:(NSString *)pathToCacheFolder {
+	if (pathToCacheFolder.length == 0) {
+		return;
+	}
+	
+	_pathToCacheFolder = pathToCacheFolder;
+	[self createCacheFolderIfNeeded];
 }
 
 - (void)createCacheFolderIfNeeded {
@@ -220,7 +229,7 @@ static NSString *const kMaxCacheCapacityInMBUserDefaultsKey = @"LPCacheClientMax
     NSDate *startDate = [NSDate date];
     double cacheCapacity = [[self cacheCapacity] doubleValue];
     double folderSize = cacheCapacity/1024/1024;
-    for (NSInteger i = 0; i < contents.count && (folderSize >= self.maxCacheCapacityMB || folderSize+REQUIRED_FREE_SPACE_ON_DEVICE >= freeSpace) && [[NSDate date] timeIntervalSinceDate:startDate] <= 20.0f; i++) {
+    for (NSInteger i = 0; i < contents.count && (folderSize >= [self.maxCacheCapacityInMB doubleValue] || folderSize+REQUIRED_FREE_SPACE_ON_DEVICE >= freeSpace) && [[NSDate date] timeIntervalSinceDate:startDate] <= 20.0f; i++) {
         NSNumber *sizeNumber;
         NSURL *url = [contents objectAtIndex:i];
         
@@ -247,7 +256,7 @@ static NSString *const kMaxCacheCapacityInMBUserDefaultsKey = @"LPCacheClientMax
     
     NSInteger fldSize = [folderSize integerValue]/1024/1024;
     
-    return (fldSize >= self.maxCacheCapacityMB || fldSize+REQUIRED_FREE_SPACE_ON_DEVICE >= freeSpace);
+    return (fldSize >= [self.maxCacheCapacityInMB doubleValue] || fldSize+REQUIRED_FREE_SPACE_ON_DEVICE >= freeSpace);
 }
 
 - (void)clearCacheIfNeeded {

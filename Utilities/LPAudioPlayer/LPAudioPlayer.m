@@ -20,7 +20,7 @@ NSString *const kLPAudioPlayerCurrentSongSkippedNotification = @"LPAudioPlayerCu
 NSString *const kLPAudioPlayerQueueChangedNotification = @"LPAudioPlayerQueueChangedNotification";
 
 static NSString *const kRepeatModeUserDefaultsKey = @"LPAudioPlayerRepeatMode";
-static NSString *const kShuffleUserDefaultsKey = @"Shuffle";
+static NSString *const kShuffleUserDefaultsKey = @"LPAudioPlayerShuffle";
 
 @interface LPAudioPlayer() <AVAudioPlayerDelegate>
 @property (strong, atomic) AVAudioPlayer *player;
@@ -28,7 +28,9 @@ static NSString *const kShuffleUserDefaultsKey = @"Shuffle";
 
 @implementation LPAudioPlayer{
     NSMutableOrderedSet *shuffledSongs;
-    
+	
+	BOOL isPlaying;
+	
     BOOL shouldPlay;
     NSTimeInterval shouldPlayAtTime;
     BOOL shouldSkipIfFailedToReload;
@@ -56,6 +58,7 @@ static NSString *const kShuffleUserDefaultsKey = @"Shuffle";
 
 @synthesize songIsLoading = songIsLoading;
 @synthesize queue = _queue;
+@synthesize isPlaying = isPlaying;
 
 + (instancetype)sharedPlayer {
     static LPAudioPlayer *player = nil;
@@ -167,15 +170,15 @@ static NSString *const kShuffleUserDefaultsKey = @"Shuffle";
     
     if (songIsLoading) {
         shouldPlay = YES;
-        _isPlaying = YES;
+        isPlaying = YES;
     } else if (!self.player) {
         shouldPlay = YES;
-        _isPlaying = YES;
+        isPlaying = YES;
         [self loadSong];
     } else {
         [self.player play];
         shouldPlay = YES;
-        _isPlaying = YES;
+        isPlaying = YES;
         
         [progressTimer invalidate];
         progressTimer = nil;
@@ -192,7 +195,7 @@ static NSString *const kShuffleUserDefaultsKey = @"Shuffle";
         [self currentSongChanged];
         [self play];
     } else {
-        if (_shuffle) {
+        if (self.shuffle) {
             NSInteger oldIndex = self.queue.currentSongIndex;
             NSInteger index = [self nextShuffled];
             self.queue.currentSongIndex = index;
@@ -211,7 +214,7 @@ static NSString *const kShuffleUserDefaultsKey = @"Shuffle";
 
 - (void)pause {
     [self.player pause];
-    _isPlaying = NO;
+    isPlaying = NO;
     shouldPlay = NO;
     
     if (progressTimer != nil) {
@@ -226,7 +229,7 @@ static NSString *const kShuffleUserDefaultsKey = @"Shuffle";
         return;
     }
     NSInteger index = 0;
-    if (_shuffle) {
+    if (self.shuffle) {
         index = [self nextShuffled];
     } else {
         index = [self nextForward];
@@ -284,7 +287,7 @@ static NSString *const kShuffleUserDefaultsKey = @"Shuffle";
         return;
     }
     NSInteger index = 0;
-    if (_shuffle) {
+    if (self.shuffle) {
         index = [self previousShuffled];
     } else {
         index = [self previousForward];

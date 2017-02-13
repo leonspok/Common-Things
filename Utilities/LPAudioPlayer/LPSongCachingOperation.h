@@ -38,7 +38,7 @@
 
 #pragma mark Override
 
-- (void)getStreamingURLSuccess:(void (^)(NSURL *streamingURL))success
-					   failure:(void (^)(NSError *error))failure;
+- (void)getStreamingRequestSuccess:(void (^)(NSURLRequest *streamingRequest))success
+						   failure:(void (^)(NSError *error))failure;
 
 @end

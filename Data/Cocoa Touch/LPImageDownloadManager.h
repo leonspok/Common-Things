@@ -10,6 +10,8 @@
 
 @import UIKit;
 
+@class LPFileDownloader;
+
 typedef enum {
     TTImageSizeOriginal,
     TTImageSize800px,
@@ -22,12 +24,39 @@ typedef enum {
 @interface LPImageDownloadManager : NSObject
 
 @property (nonatomic, strong) NSString *pathToCacheFolder;
+@property (strong, nonatomic, readonly) NSNumber *cacheCapacity;
+@property (nonatomic) NSTimeInterval maxCacheStorageTime;
+@property (nonatomic, strong) NSNumber *maxCacheCapacityInMB;
+@property (nonatomic) NSTimeInterval checkCacheInterval;
+@property (nonatomic) NSUInteger inMemoryCacheCountLimit;
+@property (nonatomic) NSUInteger inMemoryCacheTotalCostLimit;
+
+@property (nonatomic, strong) NSString *pathToPermanentCacheFolder;
+@property (nonatomic, strong, readonly) NSNumber *permanentCacheCapacity;
+
+@property (nonatomic, strong) LPFileDownloader *fileDownloader;
 
 + (instancetype)defaultManager;
+
+- (void)clearCache;
 
 - (NSURL *)urlToDownloadedImageFromURL:(NSString *)url
                                   size:(TTImageSize)size
                                rounded:(BOOL)rounded;
+
+- (UIImage *)getImageForURL:(NSString *)url
+					   size:(TTImageSize)size
+					rounded:(BOOL)rounded
+				  permanent:(BOOL)permanent;
+- (void)getImageForURL:(NSString *)url
+				  size:(TTImageSize)size
+			   rounded:(BOOL)rounded
+			 permanent:(BOOL)permanent
+			completion:(void (^)(UIImage *image))completion;
+- (BOOL)hasImageForURL:(NSString *)url
+				  size:(TTImageSize)size
+			   rounded:(BOOL)rounded
+			 permanent:(BOOL)permanent;
 
 - (UIImage *)getImageForURL:(NSString *)url
                        size:(TTImageSize)size
