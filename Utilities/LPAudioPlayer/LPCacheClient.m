@@ -88,7 +88,7 @@ static NSString *const kMaxCacheCapacityInMBUserDefaultsKey = @"LPCacheClientMax
 }
 
 - (LPSongCachingOperationFactory *)cachingOperationsFactory {
-	if (_cachingOperationsFactory) {
+	if (!_cachingOperationsFactory) {
 		return [LPSongCachingOperationFactory new];
 	}
 	return _cachingOperationsFactory;

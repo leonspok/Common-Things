@@ -17,7 +17,7 @@
 @property (nonatomic) long long totalBytesWritten;
 @property (nonatomic) long long totalBytesExpectedToRead;
 @property (nonatomic, strong) NSURLSession *session;
-@property (nonatomic, strong) NSURL *streamingURL;
+@property (nonatomic, strong) NSURL *streamingRequest;
 @property (nonatomic, strong) void (^progress)(float progress);
 @property (nonatomic, strong) void (^success)();
 @property (nonatomic, strong) void (^failure)(NSError *error);
@@ -99,7 +99,8 @@
 			self.bytesOffset = bytes;
 		}
 		
-		weakSelf.downloadTask = [self.session dataTaskWithRequest:request];
+		self.streamingRequest = request;
+		weakSelf.downloadTask = [self.session dataTaskWithRequest:self.streamingRequest];
 		
 		self.totalBytesExpectedToRead = 0;
 		_currentSpeed = 0.0f;
@@ -148,14 +149,14 @@
 + (NSString *)pathToFinishedFileForSong:(LPAudioPlayerItem *)song
                       pathToCacheFolder:(NSString *)path
                                   owner:(NSString *)owner {
-    NSString *permanentName = [path stringByAppendingPathComponent:[NSString stringWithFormat:@"%@", song.uid]];
+    NSString *permanentName = [path stringByAppendingPathComponent:[NSString stringWithFormat:@"%@.mp3", song.uid]];
     return permanentName;
 }
 
 + (NSString *)pathToTempFileForSong:(LPAudioPlayerItem *)song
                   pathToCacheFolder:(NSString *)path
                               owner:(NSString *)owner {
-    NSString *tempName = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@_temp_%@", song.uid, owner? : @""]];
+    NSString *tempName = [NSTemporaryDirectory() stringByAppendingPathComponent:[NSString stringWithFormat:@"%@_temp_%@.mp3", song.uid, owner? : @""]];
     return tempName;
 }
 
@@ -184,7 +185,7 @@
             return;
         }
         
-        if (![task.originalRequest.URL isEqual:self.streamingURL]) {
+        if (![task.originalRequest isEqual:self.streamingRequest]) {
             return;
         }
         
@@ -203,7 +204,7 @@
         }
         self.finished = YES;
     } else {
-        if (![task.originalRequest.URL isEqual:self.streamingURL] || self.cancelled) {
+        if (![task.originalRequest isEqual:self.streamingRequest] || self.cancelled) {
             return;
         }
         @synchronized (self.tempFileHandle) {
