@@ -13,10 +13,10 @@ NSString *const kCurrentSongChangedNotification = @"CurrentSongChangedNotificati
 NSString *const kQueueChangedNotificationQueueKey = @"QueueChangedNotificationQueue";
 
 @interface LPAudioQueue()
-@property (nonatomic, strong) NSMutableArray *intSongs;
 @end
 
 @implementation LPAudioQueue
+@synthesize currentSongIndex = _currentSongIndex, songs = _songs;
 
 - (LPAudioPlayerItem *)currentSong {
     if (self.currentSongIndex >= self.songs.count) {
@@ -27,7 +27,7 @@ NSString *const kQueueChangedNotificationQueueKey = @"QueueChangedNotificationQu
 
 - (void)setSongs:(NSArray *)songs {
     LPAudioPlayerItem *oldCurrentSong = self.currentSong;
-    self.intSongs = [songs mutableCopy];
+    _songs = [songs mutableCopy];
     if ([self.songs containsObject:oldCurrentSong]) {
         _currentSongIndex = [self.songs indexOfObject:oldCurrentSong];
     } else {
@@ -36,17 +36,13 @@ NSString *const kQueueChangedNotificationQueueKey = @"QueueChangedNotificationQu
     [[NSNotificationCenter defaultCenter] postNotificationName:kQueueChangedNotification object:self userInfo:@{kQueueChangedNotificationQueueKey:self}];
 }
 
-- (NSArray *)songs {
-    return self.intSongs;
-}
-
 - (void)setCurrentSongIndex:(NSUInteger)currentSongIndex {
     _currentSongIndex = currentSongIndex;
     [[NSNotificationCenter defaultCenter] postNotificationName:kCurrentSongChangedNotification object:self userInfo:@{kQueueChangedNotificationQueueKey:self}];
 }
 
 - (void)addSongs:(NSArray<__kindof LPAudioPlayerItem *> *)newSongs {
-    [self.intSongs addObjectsFromArray:newSongs];
+    [_songs addObjectsFromArray:newSongs];
     [[NSNotificationCenter defaultCenter] postNotificationName:kQueueChangedNotification object:self userInfo:@{kQueueChangedNotificationQueueKey:self}];
 }
 
@@ -54,7 +50,7 @@ NSString *const kQueueChangedNotificationQueueKey = @"QueueChangedNotificationQu
     if (index < self.currentSongIndex) {
         _currentSongIndex++;
     }
-    [self.intSongs insertObject:song atIndex:index];
+    [_songs insertObject:song atIndex:index];
     [[NSNotificationCenter defaultCenter] postNotificationName:kQueueChangedNotification object:self userInfo:@{kQueueChangedNotificationQueueKey:self}];
 }
 
@@ -66,9 +62,9 @@ NSString *const kQueueChangedNotificationQueueKey = @"QueueChangedNotificationQu
     } else if (self.currentSongIndex == fromIndex) {
         _currentSongIndex = toIndex;
     }
-    LPAudioPlayerItem *temp = [self.intSongs objectAtIndex:fromIndex];
-    [self.intSongs removeObject:temp];
-    [self.intSongs insertObject:temp atIndex:toIndex];
+    LPAudioPlayerItem *temp = [_songs objectAtIndex:fromIndex];
+    [_songs removeObject:temp];
+    [_songs insertObject:temp atIndex:toIndex];
     
     [[NSNotificationCenter defaultCenter] postNotificationName:kQueueChangedNotification object:self userInfo:@{kQueueChangedNotificationQueueKey:self}];
 }
@@ -76,10 +72,10 @@ NSString *const kQueueChangedNotificationQueueKey = @"QueueChangedNotificationQu
 - (void)removeSongAtIndex:(NSUInteger)index {
     if (index < self.currentSongIndex) {
         _currentSongIndex--;
-    } else if (index == self.currentSongIndex && self.currentSongIndex == self.intSongs.count-1) {
+    } else if (index == self.currentSongIndex && self.currentSongIndex == self.songs.count-1) {
         _currentSongIndex = 0;
     }
-    [self.intSongs removeObjectAtIndex:index];
+    [_songs removeObjectAtIndex:index];
     
     [[NSNotificationCenter defaultCenter] postNotificationName:kQueueChangedNotification object:self userInfo:@{kQueueChangedNotificationQueueKey:self}];
 }
@@ -88,18 +84,18 @@ NSString *const kQueueChangedNotificationQueueKey = @"QueueChangedNotificationQu
     [indexSet enumerateIndexesWithOptions:NSEnumerationReverse usingBlock:^(NSUInteger index, BOOL * _Nonnull stop) {
         if (index < self.currentSongIndex) {
             _currentSongIndex--;
-        } else if (index == self.currentSongIndex && self.currentSongIndex == self.intSongs.count-1) {
+        } else if (index == self.currentSongIndex && self.currentSongIndex == self.songs.count-1) {
             _currentSongIndex = 0;
         }
-        [self.intSongs removeObjectAtIndex:index];
+        [_songs removeObjectAtIndex:index];
     }];
     [[NSNotificationCenter defaultCenter] postNotificationName:kQueueChangedNotification object:self userInfo:@{kQueueChangedNotificationQueueKey:self}];
 }
 
 - (void)removeSongs:(NSArray<__kindof LPAudioPlayerItem *> *)songs {
     NSMutableIndexSet *indexSet = [NSMutableIndexSet indexSet];
-    for (NSUInteger i = 0; i < self.intSongs.count; i++) {
-        LPAudioPlayerItem *s = [self.intSongs objectAtIndex:i];
+    for (NSUInteger i = 0; i < self.songs.count; i++) {
+        LPAudioPlayerItem *s = [self.songs objectAtIndex:i];
         for (LPAudioPlayerItem *song in songs) {
             if ([s isEqual:song]) {
                 [indexSet addIndex:i];

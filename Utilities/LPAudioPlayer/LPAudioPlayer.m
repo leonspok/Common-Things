@@ -9,6 +9,7 @@
 #import "LPAudioPlayer.h"
 #import "LPImageDownloadManager.h"
 #import "LPOfflineChecker.h"
+#import "UIImage+ImageEffects.h"
 
 @import AVFoundation;
 @import MediaPlayer;
@@ -109,7 +110,7 @@ static NSString *const kShuffleUserDefaultsKey = @"LPAudioPlayerShuffle";
         [[LPOfflineChecker defaultChecker].notificationCenter addObserver:self
                                                                  selector:@selector(offlineStatusChanged)
                                                                      name:kOfflineStatusChangedNotification
-                                                                   object:nil];
+                                                                   object:self];
         
         dispatch_async(dispatch_get_main_queue(), ^{
             [NSTimer scheduledTimerWithTimeInterval:0.1f target:self selector:@selector(recordCurrentPlayingTime) userInfo:nil repeats:YES];
@@ -186,7 +187,7 @@ static NSString *const kShuffleUserDefaultsKey = @"LPAudioPlayerShuffle";
             progressTimer = [NSTimer scheduledTimerWithTimeInterval:1.0 target:self selector:@selector(handleCurrentTimeChange) userInfo:nil repeats:YES];
         });
     }
-    [_notificationCenter postNotificationName:kLPAudioPlayerPlaybackChangedNotification object:nil];
+    [self.notificationCenter postNotificationName:kLPAudioPlayerPlaybackChangedNotification object:self];
 }
 
 - (void)playNext {
@@ -221,7 +222,7 @@ static NSString *const kShuffleUserDefaultsKey = @"LPAudioPlayerShuffle";
         [progressTimer invalidate];
         progressTimer = nil;
     }
-    [self.notificationCenter postNotificationName:kLPAudioPlayerPlaybackChangedNotification object:nil];
+    [self.notificationCenter postNotificationName:kLPAudioPlayerPlaybackChangedNotification object:self];
 }
 
 - (void)nextInternal {
@@ -239,7 +240,7 @@ static NSString *const kShuffleUserDefaultsKey = @"LPAudioPlayerShuffle";
 
 - (void)next {
     [self nextInternal];
-	[self.notificationCenter postNotificationName:kLPAudioPlayerCurrentSongSkippedNotification object:nil];
+	[self.notificationCenter postNotificationName:kLPAudioPlayerCurrentSongSkippedNotification object:self];
 }
 
 - (NSInteger)nextShuffled {
@@ -297,7 +298,7 @@ static NSString *const kShuffleUserDefaultsKey = @"LPAudioPlayerShuffle";
 
 - (void)previous {
     [self previousInternal];
-	[self.notificationCenter postNotificationName:kLPAudioPlayerCurrentSongSkippedNotification object:nil];
+	[self.notificationCenter postNotificationName:kLPAudioPlayerCurrentSongSkippedNotification object:self];
 }
 
 - (NSInteger)previousShuffled {
@@ -536,12 +537,12 @@ static NSString *const kShuffleUserDefaultsKey = @"LPAudioPlayerShuffle";
     
     [shuffledSongs removeAllObjects];
     [self currentSongChanged];
-    [self.notificationCenter postNotificationName:kLPAudioPlayerQueueChangedNotification object:nil];
+    [self.notificationCenter postNotificationName:kLPAudioPlayerQueueChangedNotification object:self];
 }
 
 - (void)softReloadQueue:(LPAudioQueue *)queue {
     if (queue == self.queue && [queue.currentSong isEqual:self.queue.currentSong]) {
-        [self.notificationCenter postNotificationName:kLPAudioPlayerQueueChangedNotification object:nil];
+        [self.notificationCenter postNotificationName:kLPAudioPlayerQueueChangedNotification object:self];
         return;
     }
     
@@ -551,7 +552,7 @@ static NSString *const kShuffleUserDefaultsKey = @"LPAudioPlayerShuffle";
         _queue = queue;
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(queueChanged) name:kQueueChangedNotification object:queue];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(currentSongChanged) name:kCurrentSongChangedNotification object:queue];
-        [self.notificationCenter postNotificationName:kLPAudioPlayerQueueChangedNotification object:nil];
+        [self.notificationCenter postNotificationName:kLPAudioPlayerQueueChangedNotification object:self];
     } else {
         BOOL wasPlaying = [self isPlaying];
         [self setQueue:queue];
@@ -630,7 +631,7 @@ static NSString *const kShuffleUserDefaultsKey = @"LPAudioPlayerShuffle";
         [self loadSong];
     }
     
-    [self.notificationCenter postNotificationName:kLPAudioPlayerCurrentSongChangedNotification object:nil];
+    [self.notificationCenter postNotificationName:kLPAudioPlayerCurrentSongChangedNotification object:self];
 }
 
 - (void)handleCurrentTimeChange {
@@ -638,7 +639,7 @@ static NSString *const kShuffleUserDefaultsKey = @"LPAudioPlayerShuffle";
         if (shouldPostCurrentTime && !songIsLoading) {
             lastPostedTime = [[self currentTime] doubleValue];
             dispatch_async(dispatch_get_main_queue(), ^{
-                [_notificationCenter postNotificationName:kLPAudioPlayerCurrentTimeChangedNotification object:nil];
+                [self.notificationCenter postNotificationName:kLPAudioPlayerCurrentTimeChangedNotification object:self];
             });
         }
         
@@ -1028,7 +1029,10 @@ static NSString *const kShuffleUserDefaultsKey = @"LPAudioPlayerShuffle";
     NSString *imageURL = [song.coverImageURL absoluteString];
     
     if ([[LPImageDownloadManager defaultManager] hasImageForURL:imageURL]) {
-        MPMediaItemArtwork *artwork = [[MPMediaItemArtwork alloc] initWithImage:[[LPImageDownloadManager defaultManager] getImageForURL:imageURL]? : [UIImage new]];
+		UIImage *image = [[LPImageDownloadManager defaultManager] getImageForURL:imageURL];
+		MPMediaItemArtwork *artwork = [[MPMediaItemArtwork alloc] initWithBoundsSize:image.size requestHandler:^UIImage * _Nonnull(CGSize size) {
+			return [image scaledImageToSize:size];
+		}];
 		if (artwork) {
 			[keys addObject:MPMediaItemPropertyArtwork];
 			[values addObject:artwork];

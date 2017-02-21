@@ -13,7 +13,10 @@ extern NSString *const kQueueChangedNotification;
 extern NSString *const kCurrentSongChangedNotification;
 extern NSString *const kQueueChangedNotificationQueueKey;
 
-@interface LPAudioQueue : NSObject
+@interface LPAudioQueue : NSObject {
+	NSUInteger _currentSongIndex;
+	NSMutableArray<__kindof LPAudioPlayerItem *> *_songs;
+}
 
 @property (nonatomic, readonly) LPAudioPlayerItem *currentSong;
 @property (nonatomic) NSUInteger currentSongIndex;
