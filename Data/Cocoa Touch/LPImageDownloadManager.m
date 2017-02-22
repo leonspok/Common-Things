@@ -256,6 +256,11 @@
 	return [[NSFileManager defaultManager] folderSizeAtURL:[NSURL fileURLWithPath:self.pathToPermanentCacheFolder]];
 }
 
+- (void)clearPermanentCache {
+	[[NSFileManager defaultManager] removeItemAtPath:self.pathToPermanentCacheFolder error:nil];
+	[self createPermanentCacheFolderIfNeeded];
+}
+
 #pragma mark Image processing
 
 - (UIImage *)renderImage:(UIImage *)image toSize:(CGSize)size rounded:(BOOL)rounded {
@@ -412,15 +417,12 @@
 			});
 		} else {
 			UIImage *image;
-			NSUInteger cost = 0;
 			if ([self hasImageForURL:url size:TTImageSizeOriginal]) {
 				image = [self getImageForURL:url size:TTImageSizeOriginal];
-				cost = 100;
 			}
 			for (TTImageSize s = size; s <= TTImageSize800px; s++) {
 				if ([self hasImageForURL:url size:s]) {
 					image = [self getImageForURL:url size:s];
-					cost = 64;
 					break;
 				}
 			}

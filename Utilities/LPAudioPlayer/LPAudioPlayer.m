@@ -342,7 +342,7 @@ static NSString *const kShuffleUserDefaultsKey = @"LPAudioPlayerShuffle";
     return index;
 }
 
-- (void)loadPlayerWithURL:(NSURL *)url error:(NSError * __autoreleasing *)error {
+- (BOOL)loadPlayerWithURL:(NSURL *)url error:(NSError * __autoreleasing *)error {
     [self.player stop];
     self.player = nil;
 	
@@ -352,7 +352,7 @@ static NSString *const kShuffleUserDefaultsKey = @"LPAudioPlayerShuffle";
 		if (error) {
 			*error = err;
 		}
-		return;
+		return NO;
 	}
 	
 	AVURLAsset *asset = [AVURLAsset assetWithURL:url];
@@ -361,12 +361,14 @@ static NSString *const kShuffleUserDefaultsKey = @"LPAudioPlayerShuffle";
 		if (error) {
 			*error = err;
 		}
-		return;
+		return NO;
 	}
 	
     self.player = [[AVAudioPlayer alloc] initWithContentsOfURL:url error:error];
     self.player.delegate = self;
     [self.player prepareToPlay];
+	
+	return YES;
 }
 
 - (void)startLoadingSong {

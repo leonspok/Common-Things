@@ -30,7 +30,6 @@ typedef enum {
 
 @property (nonatomic, strong) LPAudioQueue *queue;
 @property (nonatomic) NSNumber *currentTime;
-
 @property (nonatomic) LPAudioPlayerRepeatMode repeatMode;
 @property (nonatomic) BOOL shuffle;
 

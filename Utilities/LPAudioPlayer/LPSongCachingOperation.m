@@ -17,7 +17,7 @@
 @property (nonatomic) long long totalBytesWritten;
 @property (nonatomic) long long totalBytesExpectedToRead;
 @property (nonatomic, strong) NSURLSession *session;
-@property (nonatomic, strong) NSURL *streamingRequest;
+@property (nonatomic, strong) NSURLRequest *streamingRequest;
 @property (nonatomic, strong) void (^progress)(float progress);
 @property (nonatomic, strong) void (^success)();
 @property (nonatomic, strong) void (^failure)(NSError *error);
