@@ -10,7 +10,7 @@
 
 @protocol LPJSONConvertable <NSObject>
 
-- (id)initWithJSON:(NSDictionary *)json;
+- (instancetype)initWithJSON:(NSDictionary *)json;
 - (void)updateWithJSON:(NSDictionary *)json;
 
 + (NSArray *)createObjectsFromJSON:(NSArray *)jsonObjects;
